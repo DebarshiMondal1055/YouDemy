@@ -4,7 +4,7 @@ import { Comment } from "../models/comment.model.js";
 import mongoose from "mongoose";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { Like } from "../models/like.model.js";
-import { User } from "../models/User.model.js";
+import { User } from "../models/user.model.js";
 import { Video } from "../models/video.model.js";
 import { Tweet } from "../models/tweets.model.js";
 import { response } from "express";

@@ -3,7 +3,7 @@ import { asyncHandler } from "../utils/aynscHandler.js";
 import { Comment } from "../models/comment.model.js";
 import mongoose from "mongoose";
 import { ApiResponse } from "../utils/ApiResponse.js";
-import { User } from "../models/User.model.js";
+import { User } from "../models/user.model.js";
 import { Video } from "../models/video.model.js";
 
 
