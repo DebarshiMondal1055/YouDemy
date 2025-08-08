@@ -11,7 +11,7 @@ const WatchHistoryPage = ({showSideNavbar}) => {
         queryKey:["history"],
         queryFn:async()=>{
             try {
-                const response=await axios.get("/api/v1/users/history");
+                const response=await axios.get(`${import.meta.env.BACKEND_BASE_URL}/api/v1/users/history`);
                 return (response.status>=200 && response.status<300)?response.data.data:[];
             } catch (error) {
                 console.error(error)

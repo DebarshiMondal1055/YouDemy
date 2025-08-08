@@ -6,38 +6,6 @@ import UpdateCourse from '../UpdateCourse/UpdateCourse';
 import AddVideoModal from '../AddVideoModal/AddVideoModal';
 
 // Dummy data for courses and videos
-const courses = [
-  {
-    id: 1,
-    title: "Introduction to React",
-    videos: [
-      { id: 1, title: "React Basics", thumbnail: "https://via.placeholder.com/200x112", duration: "10:30" },
-      { id: 2, title: "Components & Props", thumbnail: "https://via.placeholder.com/200x112", duration: "15:45" },
-      { id: 3, title: "State Management", thumbnail: "https://via.placeholder.com/200x112", duration: "12:20" },
-      { id: 4, title: "Hooks Overview", thumbnail: "https://via.placeholder.com/200x112", duration: "8:50" },
-    ]
-  },
-  {
-    id: 2,
-    title: "Advanced JavaScript",
-    videos: [
-      { id: 1, title: "Closures", thumbnail: "https://via.placeholder.com/200x112", duration: "14:25" },
-      { id: 2, title: "Async/Await", thumbnail: "https://via.placeholder.com/200x112", duration: "11:10" },
-      { id: 3, title: "Promises", thumbnail: "https://via.placeholder.com/200x112", duration: "9:35" },
-    ]
-  },
-  {
-    id: 3,
-    title: "CSS Mastery",
-    videos: [
-      { id: 1, title: "Flexbox", thumbnail: "https://via.placeholder.com/200x112", duration: "13:15" },
-      { id: 2, title: "Grid Layout", thumbnail: "https://via.placeholder.com/200x112", duration: "16:40" },
-      { id: 3, title: "Animations", thumbnail: "https://via.placeholder.com/200x112", duration: "10:55" },
-      { id: 4, title: "Responsive Design", thumbnail: "https://via.placeholder.com/200x112", duration: "14:30" },
-    ]
-  }
-];
-
 const MyCoursesPage = ({ showSideNavbar }) => {
   const [openMenu, setOpenMenu] = useState(null);
     const {user}=useAuthContext();
@@ -63,7 +31,7 @@ const MyCoursesPage = ({ showSideNavbar }) => {
         queryKey:['myCourses',user?._id],
         queryFn:async()=>{
             try {
-                const response=await axios.get(`/api/v1/playlists/p/users/${user?._id}`);
+                const response=await axios.get(`${import.meta.env.BACKEND_BASE_URL}/api/v1/playlists/p/users/${user?._id}`);
                 return response.status===200?response.data.data:[];
             } catch (error) {
                 console.error(error)
@@ -83,7 +51,7 @@ const MyCoursesPage = ({ showSideNavbar }) => {
 
     const deleteCourseMutation=useMutation({
         mutationFn:async(courseId)=>{
-            return await axios.post(`/api/v1/playlists/p/${courseId}`,{},{withCredentials:true});
+            return await axios.post(`${import.meta.env.BACKEND_BASE_URL}/api/v1/playlists/p/${courseId}`,{},{withCredentials:true});
         },
         onSuccess:(_,courseId)=>{
             queryClient.setQueryData(['myCourses',user?._id],(oldCourses=[])=>oldCourses.filter(course=>course._id!==courseId))

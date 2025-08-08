@@ -12,7 +12,7 @@ const HomePage = ({showSideNavbar}) => {
     queryKey:['homeVideos',category],
     queryFn:async()=>{
       try {
-        const response=await axios.get(`/api/v1/videos?category=${category}`)
+        const response=await axios.get(`${import.meta.env.BACKEND_BASE_URL}/api/v1/videos?category=${category}`)
         return (response.status===200)?response.data.data:[];
       } catch (error) {
         console.error(error)

@@ -28,7 +28,7 @@ const submitHandler = async () => {
     try {
         setloading(true);
         const response = await axios.post(
-            "/api/v1/videos/uploadVideo",
+            `${import.meta.env.BACKEND_BASE_URL}/api/v1/videos/uploadVideo`,
             formdata,
             {
                 withCredentials: true,

@@ -10,7 +10,7 @@ const SubcriberPage = ({showSideNavbar}) => {
         queryKey:['subscribers'],
         queryFn:async()=>{
             try {
-                const response=await axios.get(`/api/v1/subscriptions/c/${user._id}`);
+                const response=await axios.get(`${import.meta.env.BACKEND_BASE_URL}/api/v1/subscriptions/c/${user._id}`);
                 return (response.status===200)?response.data.data:null;
             } catch (error) {
                 console.error(error);

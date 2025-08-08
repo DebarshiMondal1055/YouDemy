@@ -11,7 +11,7 @@ const UserProfilePage = ({showSideNavbar}) => {
     useEffect(() => {
         const fetchUserData = async () => {
         try {
-            const response = await axios.get(`http://localhost:8000/api/v1/users/c/${username}`, {
+            const response = await axios.get(`${import.meta.env.BACKEND_BASE_URL}/api/v1/users/c/${username}`, {
             withCredentials: true
             });
             setUserData(response.data.data);

@@ -10,7 +10,7 @@ const AddVideoModal = ({selectedCourse:c_id,cancelAddVideoModal}) => {
         queryKey:['myVideos',user?._id],
         queryFn:async()=>{
             try {
-                const response=await axios.get(`/api/v1/videos/${user?._id}`);
+                const response=await axios.get(`${import.meta.env.BACKEND_BASE_URL}/api/v1/videos/${user?._id}`);
                 return response.status===200?response.data.data:[];
             } catch (error) {
                 console.error(error);
@@ -29,7 +29,7 @@ const AddVideoModal = ({selectedCourse:c_id,cancelAddVideoModal}) => {
     const addVideoMutation=useMutation({
         mutationFn:async({videoId,c_id})=>{
             const addedVideo=[videoId]
-            return await axios.post(`/api/v1/playlists/${c_id}/videos`,{videoIds:addedVideo},{withCredentials:true})
+            return await axios.post(`${import.meta.env.BACKEND_BASE_URL}/api/v1/playlists/${c_id}/videos`,{videoIds:addedVideo},{withCredentials:true})
         },
         onSuccess:async()=>{
           await queryClient.invalidateQueries(['myCourses'],user?._id)

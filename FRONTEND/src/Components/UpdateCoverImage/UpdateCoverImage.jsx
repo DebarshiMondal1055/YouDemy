@@ -13,7 +13,7 @@ const UpdateCoverImage = ({cancelUpdateCoverImage}) => {
         try {
             const formData=new FormData();
             formData.append("coverimage",coverImage);
-            const response=await axios.patch('/api/v1/users/update-cover-image',formData,{withCredentials:true});
+            const response=await axios.patch(`${import.meta.env.BACKEND_BASE_URL}/api/v1/users/update-cover-image`,formData,{withCredentials:true});
             if(response.status===201){
                 await queryClient.setQueryData(['currentUser'],response.data.data)
                 setIsLoading(false);
