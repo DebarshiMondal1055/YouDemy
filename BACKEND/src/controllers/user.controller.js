@@ -115,10 +115,11 @@ const loginUser=asyncHandler(async(req,res)=>{
 
     const LoggedInUser=await User.findById(user._id).select("-password -refreshToken ")
 
-    const options={
-        httpOnly:true,
-        secure: true
-    }
+    const options = {
+        httpOnly: true,
+        sameSite: "None", // ✅ Required for cross-site cookies
+        secure: true,     // ✅ Must be true when using sameSite: "None"
+        };
     return res
     .status(201)
     .cookie("accessToken",accessToken,options)  //cookies are a key-value pair
@@ -154,10 +155,11 @@ const logoutUser=asyncHandler(async(req,res)=>{
             new:true                //update hone ke baad it return it as a object
         }
     )
-    const options={
-        httpOnly:true,
-        secure: true
-    }
+    const options = {
+        httpOnly: true,
+        sameSite: "None", // ✅ Required for cross-site cookies
+        secure: true,     // ✅ Must be true when using sameSite: "None"
+        };
 
     res
     .status(201)
@@ -188,10 +190,11 @@ const refreshAccessToken=asyncHandler(async(req,res)=>{
     if(user.refreshToken!==oldRefreshToken){
         throw new ApiError(404,"Refresh Token expired");
     }
-    const options={
-        httpOnly:true,
-        secure:true
-    }
+    const options = {
+        httpOnly: true,
+        sameSite: "None", // ✅ Required for cross-site cookies
+        secure: true,     // ✅ Must be true when using sameSite: "None"
+        };
 
     const {accessToken:newAccessToken,refreshToken:newRefreshToken}=await generateAccessAndRefreshToken(user._id);
 
