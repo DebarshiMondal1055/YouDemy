@@ -21,7 +21,7 @@ function App() {
       queryKey:['currentUser'],
       queryFn:async()=>{
         try {
-          const response=await axios.get("/api/v1/users/get-user",{withCredentials:true})
+          const response=await axios.get(`${import.meta.env.BACKEND_BASE_URL}/api/v1/users/get-user`,{withCredentials:true})
           return (response.status>=200 && response.status<300)?response.data.data:null;
         } catch (error) {
           console.error(error);
