@@ -11,7 +11,7 @@ const UpdateCourse = ({cancelUpdateCourse,selectedCourse:c_id}) => {
     const queryClient=useQueryClient();
     const updateCourseMutation=useMutation({
         mutationFn:async({title,description,c_id})=>{
-            return await axios.patch(`${import.meta.env.BACKEND_BASE_URL}/api/v1/playlists/${c_id}`,{name:title,description:description},{withCredentials:true})
+            return await axios.patch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/playlists/${c_id}`,{name:title,description:description},{withCredentials:true})
         },
         onSuccess:async(updatedData,{c_id})=>{
             console.log(updatedData)

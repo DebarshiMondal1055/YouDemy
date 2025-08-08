@@ -26,7 +26,7 @@ const Navbar = ({toggleSideNavbar}) => {
     const logoutHandler=async()=>{
         try {
             setShowModalOptions(false);
-            const response=await axios.post(`${import.meta.env.BACKEND_BASE_URL}/api/v1/users/logout`,{},{withCredentials:true})
+            const response=await axios.post(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/users/logout`,{},{withCredentials:true})
             queryClient.removeQueries(['currentUser']);
             navigate('/login', { replace: true });
 

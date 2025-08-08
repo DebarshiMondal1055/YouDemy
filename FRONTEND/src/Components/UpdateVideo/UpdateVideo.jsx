@@ -14,7 +14,7 @@ const UpdateVideo = ({cancelUpdateVideo,selectedVideo}) => {
                 return;
             }
             const data={title,description}
-            const response=await axios.patch(`${import.meta.env.BACKEND_BASE_URL}/api/v1/videos/v/${selectedVideo._id}`,data,{withCredentials:true});
+            const response=await axios.patch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/videos/v/${selectedVideo._id}`,data,{withCredentials:true});
             if(response.status===200){
                 await queryClient.setQueryData(['userVideos'],(prev=[])=>prev.map((video)=>video._id===selectedVideo._id?response.data.data:video))
                 alert("Video updated successfully!");

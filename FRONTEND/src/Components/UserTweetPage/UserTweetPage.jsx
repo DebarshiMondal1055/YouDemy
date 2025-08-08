@@ -11,7 +11,7 @@ const UserTweetPage = ({showSideNavbar}) => {
     useEffect(() => {
         const fetchUserData = async () => {
         try {
-            const response = await axios.get(`${import.meta.env.BACKEND_BASE_URL}/api/v1/users/c/${username}`, {
+            const response = await axios.get(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/users/c/${username}`, {
             withCredentials: true
             });
             setUserData(response.data.data);
@@ -25,7 +25,7 @@ const UserTweetPage = ({showSideNavbar}) => {
 
     const toggleSubscribe=async ()=>{
         try {
-            const response = await axios.post(`${import.meta.env.BACKEND_BASE_URL}/api/v1/subscriptions/c/${_id}`, {}, { withCredentials: true });
+            const response = await axios.post(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/subscriptions/c/${_id}`, {}, { withCredentials: true });
             const {isSubscribed,subscriptionCount}=response.data.data;
             setUserData((prev)=>({...prev,subscribersCount:subscriptionCount,isSubscribed:isSubscribed}))
         } catch (error) {
@@ -39,7 +39,7 @@ const UserTweetPage = ({showSideNavbar}) => {
         queryKey:['tweets',_id],
         queryFn:async()=>{
         try {
-            const response=await axios.get(`${import.meta.env.BACKEND_BASE_URL}/api/v1/tweets/users/${_id}`);
+            const response=await axios.get(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/tweets/users/${_id}`);
             return response.status===200?response.data.data:[]
         } catch (error) {
             console.error(error);

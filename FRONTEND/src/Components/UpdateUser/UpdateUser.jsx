@@ -14,7 +14,7 @@ const UpdateUser = ({cancelUpdateUser}) => {
     const userUpdateHandler=async()=>{
         try {
             setIsLoading(true);
-            const response=await axios.patch(`${import.meta.env.BACKEND_BASE_URL}http://localhost:8000/api/v1/users/change-account-details`,
+            const response=await axios.patch(`${import.meta.env.VITE_BACKEND_BASE_URL}http://localhost:8000/api/v1/users/change-account-details`,
                 {fullname:newFullname,username:newUsername,email:newEmail},
                 {withCredentials:true});
             if(response.status===201){

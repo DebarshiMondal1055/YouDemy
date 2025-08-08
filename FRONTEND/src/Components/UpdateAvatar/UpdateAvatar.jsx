@@ -12,7 +12,7 @@ const UpdateAvatar = ({cancelUpdateAvatar}) => {
         try {
             const formData=new FormData();
             formData.append("avatar",avatar);
-            const response=await axios.patch(`${import.meta.env.BACKEND_BASE_URL}/api/v1/users/update-avatar`,formData,{withCredentials:true});
+            const response=await axios.patch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/users/update-avatar`,formData,{withCredentials:true});
             if(response.status===201){
                 await queryClient.setQueryData(['currentUser'],response.data.data);
                 cancelUpdateAvatar();

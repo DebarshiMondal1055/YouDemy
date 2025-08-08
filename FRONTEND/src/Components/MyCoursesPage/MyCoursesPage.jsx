@@ -31,7 +31,7 @@ const MyCoursesPage = ({ showSideNavbar }) => {
         queryKey:['myCourses',user?._id],
         queryFn:async()=>{
             try {
-                const response=await axios.get(`${import.meta.env.BACKEND_BASE_URL}/api/v1/playlists/p/users/${user?._id}`);
+                const response=await axios.get(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/playlists/p/users/${user?._id}`);
                 return response.status===200?response.data.data:[];
             } catch (error) {
                 console.error(error)
@@ -51,7 +51,7 @@ const MyCoursesPage = ({ showSideNavbar }) => {
 
     const deleteCourseMutation=useMutation({
         mutationFn:async(courseId)=>{
-            return await axios.post(`${import.meta.env.BACKEND_BASE_URL}/api/v1/playlists/p/${courseId}`,{},{withCredentials:true});
+            return await axios.post(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/playlists/p/${courseId}`,{},{withCredentials:true});
         },
         onSuccess:(_,courseId)=>{
             queryClient.setQueryData(['myCourses',user?._id],(oldCourses=[])=>oldCourses.filter(course=>course._id!==courseId))

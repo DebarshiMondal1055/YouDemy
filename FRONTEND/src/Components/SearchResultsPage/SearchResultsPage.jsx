@@ -54,7 +54,7 @@ const SearchResultsPage = ({showSideNavbar}) => {
         queryKey:['searchResults',query],
         queryFn:async()=>{
             try {
-                const response=await axios.get(`${import.meta.env.BACKEND_BASE_URL}/api/v1/videos/get-all-videos?query=${query}`)
+                const response=await axios.get(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/videos/get-all-videos?query=${query}`)
                 return (response.status===200)?response.data.data:[];
             } catch (error) {
                 console.error(error);

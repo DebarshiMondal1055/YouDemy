@@ -46,7 +46,7 @@ const UserCoursePage = ({showSideNavbar}) => {
     useEffect(() => {
         const fetchUserData = async () => {
         try {
-            const response = await axios.get(`${import.meta.env.BACKEND_BASE_URL}/api/v1/users/c/${username}`, {
+            const response = await axios.get(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/users/c/${username}`, {
             withCredentials: true
             });
             setUserData(response.data.data);
@@ -60,7 +60,7 @@ const UserCoursePage = ({showSideNavbar}) => {
 
     const toggleSubscribe=async ()=>{
         try {
-            const response = await axios.post(`${import.meta.env.BACKEND_BASE_URL}/api/v1/subscriptions/c/${_id}`, {}, { withCredentials: true });
+            const response = await axios.post(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/subscriptions/c/${_id}`, {}, { withCredentials: true });
             const {isSubscribed,subscriptionCount}=response.data.data;
             setUserData((prev)=>({...prev,subscribersCount:subscriptionCount,isSubscribed:isSubscribed}))
         } catch (error) {
@@ -73,7 +73,7 @@ const UserCoursePage = ({showSideNavbar}) => {
         queryKey:['courses',_id],
         queryFn:async()=>{
             try {
-                const response=await axios.get(`/api/v1/playlists/p/users/${_id}`)
+                const response=await axios.get(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/playlists/p/users/${_id}`)
                 return response.status===200?response.data.data:null;
             } catch (error) {
                 console.error(error);

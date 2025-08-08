@@ -26,7 +26,7 @@ const SignUp = () => {
           formdata.append("password",password)
           formdata.append("avatar",avatar)
           formdata.append("coverimage",coverImage) 
-          const response=await axios.post(`${import.meta.env.BACKEND_BASE_URL}/api/v1/users/register/`,formdata,{withCredentials:true})
+          const response=await axios.post(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/users/register/`,formdata,{withCredentials:true})
           if(response.status===201){
             setIsLoading(false);
             console.log(response.data.data);

@@ -66,7 +66,7 @@ const UserDashboardPage = ({showSideNavbar}) => {
     const handleAddTweet=async()=>{
         try {
           const data={content:tweetContent}
-          const response=await axios.post(`${import.meta.env.BACKEND_BASE_URL}/api/v1/tweets/create-tweet`,data,{withCredentials:true});
+          const response=await axios.post(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/tweets/create-tweet`,data,{withCredentials:true});
           if(response.status===200){
             alert("Tweet Added Successfully");
             return null;
@@ -82,7 +82,7 @@ const UserDashboardPage = ({showSideNavbar}) => {
         queryKey:['userVideos'],
         queryFn:async()=>{
             try {
-                const response=await axios.get(`${import.meta.env.BACKEND_BASE_URL}/api/v1/videos/${user?._id}`);
+                const response=await axios.get(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/videos/${user?._id}`);
                 return response.status===200?response.data.data:[];
             } catch (error) {
                 console.error(error);
@@ -94,10 +94,10 @@ const UserDashboardPage = ({showSideNavbar}) => {
 
     const deleteVideoMutation = useMutation({
         mutationFn: async (videoId) => {
-            const response1=await axios.post(`${import.meta.env.BACKEND_BASE_URL}/api/v1/videos/v/${videoId}`,{}, { withCredentials: true });
-            const response2=await axios.post(`${import.meta.env.BACKEND_BASE_URL}/api/v1/likes/delete/v/${videoId}`,{},{withCredentials:true});
+            const response1=await axios.post(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/videos/v/${videoId}`,{}, { withCredentials: true });
+            const response2=await axios.post(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/likes/delete/v/${videoId}`,{},{withCredentials:true});
             if(response2.status!==200) console.log("Something wrong in Likes")
-            const response3=await axios.post(`${import.meta.env.BACKEND_BASE_URL}/api/v1/playlists/v/${videoId}`,{},{withCredentials:true});
+            const response3=await axios.post(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/playlists/v/${videoId}`,{},{withCredentials:true});
             if(response3.status!==200)
             return response1;
         },

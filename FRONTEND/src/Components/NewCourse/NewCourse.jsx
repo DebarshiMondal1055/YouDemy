@@ -9,7 +9,7 @@ const NewCourse = ({cancelDone,addedVideos}) => {
 
     const  createCourseMutation=useMutation({
         mutationFn:async()=>{
-            const response= await axios.post(`${import.meta.env.BACKEND_BASE_URL}/api/v1/playlists/create-playlist`,{name:title,description:description},{withCredentials:true})
+            const response= await axios.post(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/playlists/create-playlist`,{name:title,description:description},{withCredentials:true})
             let uploadVideos=[];
             if(response.status===201){
                  uploadVideos=await axios.post(`/api/v1/playlists/${response.data.data._id}/videos`,{videoIds:addedVideos},{withCredentials:true})

@@ -13,7 +13,7 @@ const Login = () => {
         mutationFn:async()=>{
             try {
                 const data={username,email,password};
-                const response=await axios.post(`${import.meta.env.BACKEND_BASE_URL}/api/v1/users/login`,data,{withCredentials:true});
+                const response=await axios.post(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/users/login`,data,{withCredentials:true});
                 if (response.status===201) {
                     return response.data.data;
                 }

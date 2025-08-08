@@ -8,7 +8,7 @@ const VideoLikePage = ({ showSideNavbar }) => {
     queryKey: ['likedVideos'],
     queryFn: async () => {
         try {
-            const response = await axios.get(`${import.meta.env.BACKEND_BASE_URL}/api/v1/likes/videos`);
+            const response = await axios.get(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/likes/videos`);
             return (response.status===200)?response.data.data : [];
         } catch (error) {
             console.error(error)

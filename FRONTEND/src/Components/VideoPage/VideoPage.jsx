@@ -20,7 +20,7 @@ const VideoPage = ({showSideNavbar}) => {
     useEffect(()=>{
         ;(async()=>{
             try {
-                const response=await axios.post(`${import.meta.env.BACKEND_BASE_URL}/api/v1/users/v/${videoId}`)
+                const response=await axios.post(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/users/v/${videoId}`)
             } catch (error) {
                 console.error(error)
             }
@@ -29,7 +29,7 @@ const VideoPage = ({showSideNavbar}) => {
     const {data,error,isLoading:loading}=useQuery({
         queryKey:['video',videoId],
         queryFn:async()=>{
-            const response=await axios.get(`${import.meta.env.BACKEND_BASE_URL}/api/v1/videos/v/${videoId}`);
+            const response=await axios.get(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/videos/v/${videoId}`);
             return (response.status>=200 && response.status<300)?response.data.data:null;
         }
     })
@@ -38,7 +38,7 @@ const VideoPage = ({showSideNavbar}) => {
     const {data:commentsData,isLoading:commentsLoading,isError,error:commentError}=useQuery({
         queryKey:['comments',videoId],
         queryFn:async()=>{
-            const response= await axios.get(`${import.meta.env.BACKEND_BASE_URL}/api/v1/comments/v/${videoId}`)
+            const response= await axios.get(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/comments/v/${videoId}`)
             return response.data.data
         }
     })
@@ -48,7 +48,7 @@ const VideoPage = ({showSideNavbar}) => {
     
     const addCommentHandler=async()=>{
         try {
-            const response=await axios.post(`${import.meta.env.BACKEND_BASE_URL}/api/v1/comments/${videoId}`,
+            const response=await axios.post(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/comments/${videoId}`,
                 {content:commentDescription});
             queryClient.invalidateQueries(['comments',videoId]);
             setcommentDescription("");
@@ -60,7 +60,7 @@ const VideoPage = ({showSideNavbar}) => {
 
     const toggleSubscribe=async ()=>{
         try {
-            const response = await axios.post(`${import.meta.env.BACKEND_BASE_URL}/api/v1/subscriptions/c/${data?.owner._id}`, {}, { withCredentials: true });
+            const response = await axios.post(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/subscriptions/c/${data?.owner._id}`, {}, { withCredentials: true });
             const {isSubscribed,subscriptionCount}=response.data.data;
             queryClient.setQueryData(['video',videoId],(prev)=>({...prev,isSubcribed:isSubscribed,subcribersCount:subscriptionCount}))
         } catch (error) {
@@ -71,7 +71,7 @@ const VideoPage = ({showSideNavbar}) => {
 
     const toggleLike=async()=>{
         try{
-            const response =await axios.post(`${import.meta.env.BACKEND_BASE_URL}/api/v1/likes/toggle/v/${videoId}`,{},{withCredentials:true});
+            const response =await axios.post(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/likes/toggle/v/${videoId}`,{},{withCredentials:true});
             const {isLiked,likesCount}=response.data.data;
             queryClient.setQueryData(['video',videoId],(prev)=>({...prev,isLiked:isLiked,likesCount:likesCount}))
         }catch(error){
@@ -85,8 +85,8 @@ const VideoPage = ({showSideNavbar}) => {
         queryFn: async () => {
         try {
             const [resByTitle, resByCategory] = await Promise.all([
-            axios.get(`${import.meta.env.BACKEND_BASE_URL}/api/v1/videos/get-all-videos?query=${data?.title}`),
-            axios.get(`${import.meta.env.BACKEND_BASE_URL}/api/v1/videos?category=${data?.category}`)
+            axios.get(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/videos/get-all-videos?query=${data?.title}`),
+            axios.get(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/videos?category=${data?.category}`)
             ]);
 
             const videosByTitle = resByTitle.status === 200 ? resByTitle.data.data : [];
