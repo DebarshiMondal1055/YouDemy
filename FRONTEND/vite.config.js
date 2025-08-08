@@ -5,7 +5,7 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   server:{
     proxy:{
-      "/api":"http://localhost:8000"
+      "/api":"https://youdemy-dgu4.onrender.com/"
     }
   },
   plugins: [tailwindcss(),react()],
