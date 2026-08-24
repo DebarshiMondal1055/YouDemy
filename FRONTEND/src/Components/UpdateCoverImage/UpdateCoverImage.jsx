@@ -1,33 +1,20 @@
 import React, { useState } from 'react'
-import { useAuthContext } from '../../Context/AuthenticationContext';
-import axios from 'axios';
-import { useQueryClient } from '@tanstack/react-query';
+import useAuthStore from '../../store/authStore';
+import { useUpdateCoverImageMutation } from '../../Hooks/useAccount';
 
 const UpdateCoverImage = ({cancelUpdateCoverImage}) => {
-    const queryClient=useQueryClient();
-    const {user}=useAuthContext();
+    const {user}=useAuthStore();
     const [coverImage,setCoverImage]=useState('');
-    const [isLoading,setIsLoading]=useState(false);
+    const updateCoverImageMutation=useUpdateCoverImageMutation();
 
-    const updateCoverImageHandler=async()=>{
-        try {
-            const formData=new FormData();
-            formData.append("coverimage",coverImage);
-            const response=await axios.patch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/users/update-cover-image`,formData,{withCredentials:true});
-            if(response.status===201){
-                await queryClient.setQueryData(['currentUser'],response.data.data)
-                setIsLoading(false);
-                cancelUpdateCoverImage();
-            }
-            return;
-        } catch (error) {
-            console.error(error);
-            setIsLoading(false);
-            return null;
-        }
+    const updateCoverImageHandler=()=>{
+        updateCoverImageMutation.mutate(coverImage,{
+            onSuccess: cancelUpdateCoverImage,
+            onError: (error) => console.error(error),
+        })
     }
 
-    if(isLoading){
+    if(updateCoverImageMutation.isPending){
         return (
                 <div className="w-full h-screen flex justify-center items-center bg-black text-white text-2xl">
                     Updating User Cover Image...

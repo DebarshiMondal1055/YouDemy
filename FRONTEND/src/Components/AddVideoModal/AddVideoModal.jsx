@@ -1,49 +1,29 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import React, { useState } from 'react'
-import { useAuthContext } from '../../Context/AuthenticationContext';
-import axios from 'axios';
+import React from 'react'
+import useAuthStore from '../../store/authStore';
+import { useUserVideosQuery } from '../../Hooks/useVideos';
+import { useAddVideoToCourseMutation } from '../../Hooks/usePlaylists';
 
 const AddVideoModal = ({selectedCourse:c_id,cancelAddVideoModal}) => {
-    const {user}=useAuthContext();
-    const queryClient=useQueryClient();
-    const {data:videos,isLoading,isError,error}=useQuery({
-        queryKey:['myVideos',user?._id],
-        queryFn:async()=>{
-            try {
-                const response=await axios.get(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/videos/${user?._id}`);
-                return response.status===200?response.data.data:[];
-            } catch (error) {
-                console.error(error);
-                return []
-            }
-        },
-        enabled:!!user?._id
-    })
+    const {user}=useAuthStore();
+    const {data:videos}=useUserVideosQuery(user?._id)
+
+    const addVideoMutation=useAddVideoToCourseMutation(user?._id)
 
     const addVideoHandler=(videoId)=>{
         const confirm=window.confirm("Are you sure you want to add this video?");
         if(confirm)
-        addVideoMutation.mutate({videoId,c_id});
+        addVideoMutation.mutate({courseId:c_id,videoId},{
+            onSuccess:()=>{
+                alert("Video added to Course Successfully")
+                cancelAddVideoModal()
+            },
+            onError:(error)=>{
+                alert("Video already present");
+                console.error(error);
+                cancelAddVideoModal()
+            }
+        });
     }
-
-    const addVideoMutation=useMutation({
-        mutationFn:async({videoId,c_id})=>{
-            const addedVideo=[videoId]
-            return await axios.post(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/playlists/${c_id}/videos`,{videoIds:addedVideo},{withCredentials:true})
-        },
-        onSuccess:async()=>{
-          await queryClient.invalidateQueries(['myCourses'],user?._id)
-          alert("Video added to Course Successfully")
-          cancelAddVideoModal()
-          return;
-        },
-        onError:(error)=>{
-            alert("Video already present");
-          console.error(error);
-          cancelAddVideoModal()
-          return;
-        }
-    })
 
 
     return (

@@ -1,37 +1,23 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
 import React from 'react'
 import { useState } from 'react'
-import { useAuthContext } from '../../Context/AuthenticationContext';
+import useAuthStore from '../../store/authStore';
+import { useUpdateCourseMutation } from '../../Hooks/usePlaylists';
 
 const UpdateCourse = ({cancelUpdateCourse,selectedCourse:c_id}) => {
-    const {user}=useAuthContext();
+    const {user}=useAuthStore();
     const [title,setTitle]=useState('');
     const [description,setDescription]=useState('');
-    const queryClient=useQueryClient();
-    const updateCourseMutation=useMutation({
-        mutationFn:async({title,description,c_id})=>{
-            return await axios.patch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/playlists/${c_id}`,{name:title,description:description},{withCredentials:true})
-        },
-        onSuccess:async(updatedData,{c_id})=>{
-            console.log(updatedData)
-            await queryClient.setQueryData(['myCourses',user?._id],(oldCourses=[])=>
-                oldCourses.map((course=>course._id===c_id?{...course,...updatedData.data.data}:course)))
-            cancelUpdateCourse();
-            return;
-        },
-        onError:()=>{
-            console.error(error);
-            return;
-        }
-    })
-    
+    const updateCourseMutation=useUpdateCourseMutation(user?._id)
+
     const updateCourseHandler=()=>{
             if (!title.trim() || !description.trim()) {
             alert('Title and description are required.');
             return;
             }
-        updateCourseMutation.mutate({title,description,c_id})
+        updateCourseMutation.mutate({courseId:c_id,name:title,description},{
+            onSuccess: cancelUpdateCourse,
+            onError: (error) => console.error(error),
+        })
     }
   return (
     <div className="fixed top-0 left-0 w-full h-full bg-black/70 flex justify-center items-center text-white z-20">

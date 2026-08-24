@@ -4,10 +4,8 @@ import { addComment, deleteComment, getVideoComments } from "../controllers/comm
 
 const router=Router()
 
-router.use(verfifyJWT)
-
-router.route("/:videoId").post(addComment)
-router.route("/ct/:commentId").post(deleteComment)
+router.route("/:videoId").post(verfifyJWT,addComment)
+router.route("/ct/:commentId").post(verfifyJWT,deleteComment)
 router.route("/v/:videoId").get(getVideoComments)
 
 

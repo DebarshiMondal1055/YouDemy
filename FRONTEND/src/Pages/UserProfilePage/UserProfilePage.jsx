@@ -1,59 +1,32 @@
 import React from 'react'
-import { useState } from 'react';
-import { useEffect } from 'react'
-import axios from 'axios'
+import { useQueryClient } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router-dom'
 import { formatRelativeTime } from '../../utils/formatRelativeTime';
-const UserProfilePage = ({showSideNavbar}) => {
+import { queryKeys } from '../../utils/queryKeys';
+import { useChannelQuery } from '../../Hooks/useChannel';
+import { useUserVideosQuery } from '../../Hooks/useVideos';
+import { useToggleSubscribeMutation } from '../../Hooks/useSubscriptions';
+const UserProfilePage = () => {
     const {username}=useParams();
-    const [userData,setUserData]=useState({});
-    const [videos,setVideos]=useState([]);
-    useEffect(() => {
-        const fetchUserData = async () => {
-        try {
-            const response = await axios.get(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/users/c/${username}`, {
-            withCredentials: true
-            });
-            setUserData(response.data.data);
-        } catch (error) {
-            console.error(error?.response?.data?.message || error.message);
-        }
-        };
-        fetchUserData();
-    }, [username]);
+    const queryClient=useQueryClient();
+    const {data:userData={}}=useChannelQuery(username);
     const {_id,fullname,avatar,coverImage,subscribersCount}=userData;
 
-    const toggleSubscribe=async ()=>{
-        try {
-            const response = await axios.post(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/subscriptions/c/${_id}`, {}, { withCredentials: true });
-            const {isSubscribed,subscriptionCount}=response.data.data;
-            setUserData((prev)=>({...prev,subscribersCount:subscriptionCount,isSubscribed:isSubscribed}))
-        } catch (error) {
-            console.error(error);
-        }
+    const {data:videos=[]}=useUserVideosQuery(_id);
 
-    }
-    
+    const toggleSubscribeMutation=useToggleSubscribeMutation();
 
-
-    useEffect(()=>{
-        const fetchVideoDetails=async()=>{
-            try {
-                if(!_id) return;
-                const response=await axios.get(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/videos/${_id}`,
-                    {withCredentials:true})
-                
-                setVideos(response.data.data)
-            } catch (error) {
-                console.error(error);
+    const toggleSubscribe=()=>{
+        toggleSubscribeMutation.mutate(_id,{
+            onSuccess:({isSubscribed,subscriptionCount})=>{
+                queryClient.setQueryData(queryKeys.channel(username),(prev)=>({...prev,subscribersCount:subscriptionCount,isSubscribed:isSubscribed}))
             }
-        }
-        fetchVideoDetails()
-    },[_id])
+        })
+    }
 
-    
+
     return (
-    <div className={`flex flex-col gap-4 ${showSideNavbar ? 'ml-[280px]' : 'ml-0'} bg-black py-4 px-4 text-white min-h-[92vh] w-full overflow-x-hidden `}>
+    <div className='flex flex-col gap-4 bg-black pt-[76px] pb-4 px-4 text-white min-h-[92vh] w-full overflow-x-hidden'>
         <div className='w-full flex justify-center h-[300px] mt-2 '>
             <div className='w-[70%] h-full'>
                 <img className='w-full h-full object-cover rounded-2xl ' 

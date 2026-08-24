@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
-import axios from 'axios'
+import useAuthStore from '../../store/authStore'
 
 const SignUp = () => {
+  const register=useAuthStore((state)=>state.register);
   const [fullname, setFullname] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -26,13 +27,9 @@ const SignUp = () => {
           formdata.append("password",password)
           formdata.append("avatar",avatar)
           formdata.append("coverimage",coverImage) 
-          const response=await axios.post(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/users/register/`,formdata,{withCredentials:true})
-          if(response.status===201){
-            setIsLoading(false);
-            console.log(response.data.data);
-            return;
-          }
-          else throw new Error("Server error");
+          await register(formdata);
+          setIsLoading(false);
+          return;
         } catch (error) {
           console.log(error);
           if (error.response && error.response.data && error.response.data.message) {

@@ -1,34 +1,22 @@
 import React, { useState } from 'react'
-import { useAuthContext } from '../../Context/AuthenticationContext';
-import axios from 'axios';
-import { useQueryClient } from '@tanstack/react-query';
+import useAuthStore from '../../store/authStore';
+import { useUpdateAvatarMutation } from '../../Hooks/useAccount';
 
 const UpdateAvatar = ({cancelUpdateAvatar}) => {
-    const queryClient=useQueryClient();
-    const {user}=useAuthContext();
+    const {user}=useAuthStore();
     const [avatar,setAvatar]=useState("");
-    const [isLoading,setIsLoading]=useState(false);
-    const updateAvatarHandler=async()=>{
-        try {
-            const formData=new FormData();
-            formData.append("avatar",avatar);
-            const response=await axios.patch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/users/update-avatar`,formData,{withCredentials:true});
-            if(response.status===201){
-                await queryClient.setQueryData(['currentUser'],response.data.data);
-                cancelUpdateAvatar();
+    const updateAvatarMutation=useUpdateAvatarMutation();
+    const updateAvatarHandler=()=>{
+        updateAvatarMutation.mutate(avatar,{
+            onSuccess: cancelUpdateAvatar,
+            onError: (error) => {
+                alert("Failed to update avatar")
+                console.error(error);
             }
-            return;
-        } catch (error) {
-            alert("Failed to update avatar")
-            console.error(error);
-            return;
-        }
-        finally{
-            setIsLoading(false);
-        }
+        })
     }
 
-    if(isLoading){
+    if(updateAvatarMutation.isPending){
             return (
                 <div className="w-full h-screen flex justify-center items-center bg-black text-white text-2xl">
                     Updating User Avatar...

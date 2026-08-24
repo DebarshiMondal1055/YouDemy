@@ -1,57 +1,30 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
 import React from 'react'
-import { useAuthContext } from '../../Context/AuthenticationContext'
-import axios from 'axios';
 import { useParams ,Link } from 'react-router-dom';
-import { useState,useEffect } from 'react';
-const UserTweetPage = ({showSideNavbar}) => {
-    const {user}=useAuthContext();
+import { queryKeys } from '../../utils/queryKeys';
+import { useChannelQuery } from '../../Hooks/useChannel';
+import { useToggleSubscribeMutation } from '../../Hooks/useSubscriptions';
+import { useTweetsQuery } from '../../Hooks/useTweets';
+const UserTweetPage = () => {
     const {username}=useParams();
-    const [userData,setUserData]=useState({});
-    useEffect(() => {
-        const fetchUserData = async () => {
-        try {
-            const response = await axios.get(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/users/c/${username}`, {
-            withCredentials: true
-            });
-            setUserData(response.data.data);
-        } catch (error) {
-            console.error(error?.response?.data?.message || error.message);
-        }
-        };
-        fetchUserData();
-    }, [username]);
+    const queryClient=useQueryClient();
+    const {data:userData={}}=useChannelQuery(username);
     const {_id,fullname,avatar,coverImage,subscribersCount}=userData;
 
-    const toggleSubscribe=async ()=>{
-        try {
-            const response = await axios.post(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/subscriptions/c/${_id}`, {}, { withCredentials: true });
-            const {isSubscribed,subscriptionCount}=response.data.data;
-            setUserData((prev)=>({...prev,subscribersCount:subscriptionCount,isSubscribed:isSubscribed}))
-        } catch (error) {
-            console.error(error);
-        }
+    const toggleSubscribeMutation=useToggleSubscribeMutation();
 
+    const toggleSubscribe=()=>{
+        toggleSubscribeMutation.mutate(_id,{
+            onSuccess:({isSubscribed,subscriptionCount})=>{
+                queryClient.setQueryData(queryKeys.channel(username),(prev)=>({...prev,subscribersCount:subscriptionCount,isSubscribed:isSubscribed}))
+            }
+        })
     }
-    
 
-    const {data:tweets,isLoading,isError,error}=useQuery({
-        queryKey:['tweets',_id],
-        queryFn:async()=>{
-        try {
-            const response=await axios.get(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/tweets/users/${_id}`);
-            return response.status===200?response.data.data:[]
-        } catch (error) {
-            console.error(error);
-            return [];
-        }
-        },
-        staleTime:Infinity,
-        enabled:!!_id
-    })
-  
+    const {data:tweets}=useTweetsQuery(_id)
+
     return (
-    <div className={`flex flex-col gap-4 ${showSideNavbar ? 'ml-[280px]' : 'ml-0'} bg-black py-4 px-4 text-white min-h-[92vh] w-full overflow-x-hidden `}>
+    <div className='flex flex-col gap-4 bg-black pt-[76px] pb-4 px-4 text-white min-h-[92vh] w-full overflow-x-hidden'>
         <div className='w-full flex justify-center h-[300px] mt-2 '>
             <div className='w-[70%] h-full'>
                 <img className='w-full h-full object-cover rounded-2xl ' 

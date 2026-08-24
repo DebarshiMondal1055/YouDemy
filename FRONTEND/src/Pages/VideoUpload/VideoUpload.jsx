@@ -1,18 +1,19 @@
-import { avatarClasses } from '@mui/material/Avatar';
-import axios from 'axios';
 import React, { useState } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { categories } from '../../utils/categories';
+import useAuthStore from '../../store/authStore';
+import { useUploadVideoMutation, useInvalidateUserVideos } from '../../Hooks/useVideos';
 const VideoUpload = () => {
     const navigate=useNavigate()
+    const {user}=useAuthStore();
     const [videoTitle,setVideoTitle]=useState("");
     const [description,setDescription]=useState("");
     const [category,setCategory]=useState("");
     const [video,setVideo]=useState(null);
     const [thumbnail,setThumbnail]=useState(null);
-    const [loading,setloading]=useState(false);
-    const [error,setError]=useState(false);
-const submitHandler = async () => {
+    const uploadVideoMutation=useUploadVideoMutation();
+    const invalidateUserVideos=useInvalidateUserVideos();
+const submitHandler = () => {
     if (!videoTitle || !description || !category || !video || !thumbnail) {
         alert("Required fields not filled");
         return;
@@ -25,24 +26,19 @@ const submitHandler = async () => {
     formdata.append("videoFile", video);
     formdata.append("thumbnail", thumbnail);
 
-    try {
-        setloading(true);
-        const response = await axios.post(
-            `${import.meta.env.BACKEND_BASE_URL}/api/v1/videos/uploadVideo`,
-            formdata,
-            {
-                withCredentials: true,
-            }
-        );
-        setloading(false)
-        console.log("Upload success:", response.data);
-    } catch (error) {
-        console.error("Upload failed:", error.response?.data);
-
-    }
+    uploadVideoMutation.mutate(formdata,{
+        onSuccess: () => {
+            invalidateUserVideos(user?._id);
+            navigate(-1);
+        },
+        onError: (error) => {
+            console.error("Upload failed:", error.response?.data);
+            alert("Failed to upload video");
+        }
+    });
 };
 
-    if(loading){
+    if(uploadVideoMutation.isPending){
             return (
                 <div className="w-full h-screen flex justify-center items-center bg-black text-white text-2xl">
                     Uploading   video...

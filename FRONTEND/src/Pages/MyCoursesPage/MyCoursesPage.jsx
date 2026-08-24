@@ -1,15 +1,13 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import React, { useState } from 'react';
-import { useAuthContext } from '../../Context/AuthenticationContext';
-import axios from 'axios';
-import UpdateCourse from '../UpdateCourse/UpdateCourse';
-import AddVideoModal from '../AddVideoModal/AddVideoModal';
+import useAuthStore from '../../store/authStore';
+import UpdateCourse from '../../Components/UpdateCourse/UpdateCourse';
+import AddVideoModal from '../../Components/AddVideoModal/AddVideoModal';
+import { useCoursesQuery, useDeleteCourseMutation, useRemoveVideoFromCourseMutation } from '../../Hooks/usePlaylists';
 
 // Dummy data for courses and videos
-const MyCoursesPage = ({ showSideNavbar }) => {
+const MyCoursesPage = () => {
   const [openMenu, setOpenMenu] = useState(null);
-    const {user}=useAuthContext();
-    const queryClient=useQueryClient();
+    const {user}=useAuthStore();
     const [updateCourse,setUpdateCourse]=useState(false);
     const [selectedCourse,setSelectedCourse]=useState(null) //for updating course
     const [showAddVideoModal,setShowAddVideoModal]=useState(false);
@@ -27,42 +25,21 @@ const MyCoursesPage = ({ showSideNavbar }) => {
     };
 
 
-    const {data:courses,isPending,isError,error}=useQuery({
-        queryKey:['myCourses',user?._id],
-        queryFn:async()=>{
-            try {
-                const response=await axios.get(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/playlists/p/users/${user?._id}`);
-                return response.status===200?response.data.data:[];
-            } catch (error) {
-                console.error(error)
-                return [];
-            }
-        },
-        staleTime:Infinity,
-        enabled:!!user?._id
-    })
+    const {data:courses}=useCoursesQuery(user?._id)
+
+    const deleteCourseMutation=useDeleteCourseMutation(user?._id)
 
     const handleDeleteCourse = (courseId) => {
         const confirm=window.confirm("Are you sure you want to remove this course?");
         if(confirm)
-        deleteCourseMutation.mutate(courseId)
+        deleteCourseMutation.mutate(courseId,{
+            onError:(error)=>{
+                alert("Failed to delete Course");
+                console.error(error);
+            }
+        })
         setOpenMenu(null);
     };
-
-    const deleteCourseMutation=useMutation({
-        mutationFn:async(courseId)=>{
-            return await axios.post(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/playlists/p/${courseId}`,{},{withCredentials:true});
-        },
-        onSuccess:(_,courseId)=>{
-            queryClient.setQueryData(['myCourses',user?._id],(oldCourses=[])=>oldCourses.filter(course=>course._id!==courseId))
-            return;
-        },
-        onError:(error)=>{
-            alert("Failed to delete Course");
-            console.error(error);
-            return;
-        }
-    })
 
 
 
@@ -80,39 +57,20 @@ const MyCoursesPage = ({ showSideNavbar }) => {
     setOpenMenu(null);
   };
 
+    const deleteVideoFromCourseMutation = useRemoveVideoFromCourseMutation(user?._id);
+
     const handleDeleteVideo = (courseId, videoId) => {
         const confirm=window.confirm("Are you sure you want to remove this video from the course?");
         if(confirm)
-        deleteVideoFromCourseMutation.mutate({courseId,videoId});
+        deleteVideoFromCourseMutation.mutate({courseId,videoId},{
+            onError: (error) => {
+                console.error("Error deleting video:", error);
+            },
+        });
     };
-    const deleteVideoFromCourseMutation = useMutation({
-    mutationFn: async ({ courseId, videoId }) => {
-        return await axios.post(
-        `/api/v1/playlists/p/${courseId}/v/${videoId}`,
-        {},
-        { withCredentials: true }
-        );
-    },
-    onSuccess: (_, { courseId, videoId }) => {
-        queryClient.setQueryData(['myCourses', user?._id], (oldCourses = []) => {
-        return oldCourses.map((course) => {
-            if (course._id === courseId) {
-            return {
-                ...course,
-                videoList: course.videoList.filter((video) => video._id !== videoId),
-            };
-            }
-            return course;
-        });
-        });
-    },
-    onError: (error) => {
-        console.error("Error deleting video:", error);
-    },
-    });
 
   return (
-    <div className={`flex flex-col gap-8 ${showSideNavbar ? 'ml-[280px]' : 'ml-0'} bg-black py-4 px-4 text-white min-h-[92vh] w-full overflow-x-hidden`}>
+    <div className='flex flex-col gap-8 bg-black pt-[76px] pb-4 px-4 text-white min-h-[92vh] w-full overflow-x-hidden'>
       {courses?.map((course,index) => (
         <div key={index} className="flex flex-col gap-4">
             <div>

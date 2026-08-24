@@ -1,37 +1,22 @@
 import React, { useState } from 'react'
 import { Link ,useNavigate} from 'react-router-dom';
-import axios from 'axios'
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
+import useAuthStore from '../../store/authStore';
 const Login = () => {
     const [username,setUsername]=useState("");
     const [email,setEmail]=useState("");
     const [password,setPassword]=useState("");
     const navigate=useNavigate();
-    const queryClient=useQueryClient();
+    const login=useAuthStore((state)=>state.login);
 
     const loginMutation=useMutation({
-        mutationFn:async()=>{
-            try {
-                const data={username,email,password};
-                const response=await axios.post(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/users/login`,data,{withCredentials:true});
-                if (response.status===201) {
-                    return response.data.data;
-                }
-                else throw new Error()
-                
-            } catch (error) {
-                throw error        
-            }
-
+        mutationFn:()=>login({username,email,password}),
+        onSuccess:()=>{
+            navigate(`/users/${username}`);
         },
-        onSuccess:async(data)=>{
-            await queryClient.invalidateQueries(['currentUser']); 
-            navigate(`/users/${username}`);  
-        },
-        onError:async()=>{
+        onError:()=>{
             alert("Invalid credentials")
             console.log("Incorrect email or password");
-            return;
         }
     })
 

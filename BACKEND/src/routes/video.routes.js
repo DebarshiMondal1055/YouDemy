@@ -21,11 +21,11 @@ router.route("/uploadVideo").post(
         }
     ]),uploadVideo)
 
-router.route("/v/:videoId").get(verfifyJWT,getVideoById);
+router.route("/v/:videoId").get(getVideoById);
 router.route("/v/:videoId").patch(verfifyJWT,updateVideo);
 router.route("/v/:videoId").post(verfifyJWT,deleteVideo);
-router.route("/get-all-videos").get(verfifyJWT,getAllVideos);
+router.route("/get-all-videos").get(getAllVideos);
 router.route("/:userId").get(getUserVideos)
-router.route("").get(verfifyJWT,getHomePageVideos)
+router.route("").get(getHomePageVideos)
 
 export default router;

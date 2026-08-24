@@ -1,7 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
 import React from 'react'
 import { useSearchParams,Link } from 'react-router-dom';
+import { useSearchVideosQuery } from '../../Hooks/useVideos';
 
 const formatDuration = (seconds) => {
   if (!seconds) return '0:00';
@@ -47,22 +46,10 @@ const formatRelativeTime = (createdAt) => {
   const years = Math.floor(diffInSeconds / secondsInYear);
   return `${years} year${years > 1 ? 's' : ''} ago`;
 };
-const SearchResultsPage = ({showSideNavbar}) => {
+const SearchResultsPage = () => {
     const [searchParams]=useSearchParams();
     const query=searchParams.get("query");
-    const{data,isLoading,isError,error}=useQuery({
-        queryKey:['searchResults',query],
-        queryFn:async()=>{
-            try {
-                const response=await axios.get(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/videos/get-all-videos?query=${query}`)
-                return (response.status===200)?response.data.data:[];
-            } catch (error) {
-                console.error(error);
-                return [];
-            }
-        },
-        staleTime:Infinity
-    })
+    const{data,isLoading}=useSearchVideosQuery(query)
     if(isLoading){
       <div className="w-full h-screen flex justify-center items-center bg-black text-white text-2xl">
         Searching...
@@ -72,7 +59,7 @@ const SearchResultsPage = ({showSideNavbar}) => {
         <div className="text-white text-lg">No results found for "{query}"</div>
     )}
     return (
-    <div className={`flex flex-col gap-4 ${showSideNavbar ? 'ml-[280px]' : 'ml-0'} bg-black py-4 px-4 text-white min-h-[92vh] w-full overflow-x-hidden `} >
+    <div className='flex flex-col gap-4 bg-black pt-[76px] pb-4 px-4 text-white min-h-[92vh] w-full overflow-x-hidden'>
       <div className="flex flex-col gap-4 pt-4 px-6">
         {data?.map((video, index) => (
           <Link

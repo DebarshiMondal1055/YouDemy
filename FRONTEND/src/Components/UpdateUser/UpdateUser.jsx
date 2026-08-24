@@ -1,36 +1,24 @@
-import { useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
 import React, { useState } from 'react'
-import { useAuthContext } from '../../Context/AuthenticationContext';
+import useAuthStore from '../../store/authStore';
+import { useUpdateAccountMutation } from '../../Hooks/useAccount';
 
 const UpdateUser = ({cancelUpdateUser}) => {
-    const {user}=useAuthContext();
-    const queryClient=useQueryClient();
+    const {user}=useAuthStore();
     const [newFullname,setNewFullName]=useState(user.fullname);
     const [newUsername,setNewUsername]=useState(user.username);
     const [newEmail,setNewEmail]=useState(user.email);
-    const [isLoading,setIsLoading]=useState(false);
+    const updateAccountMutation=useUpdateAccountMutation();
 
-    const userUpdateHandler=async()=>{
-        try {
-            setIsLoading(true);
-            const response=await axios.patch(`${import.meta.env.VITE_BACKEND_BASE_URL}http://localhost:8000/api/v1/users/change-account-details`,
-                {fullname:newFullname,username:newUsername,email:newEmail},
-                {withCredentials:true});
-            if(response.status===201){
-                await queryClient.setQueryData(['currentUser'],response.data.data);
-                setIsLoading(false);
-                cancelUpdateUser();
+    const userUpdateHandler=()=>{
+        updateAccountMutation.mutate(
+            {fullname:newFullname,username:newUsername,email:newEmail},
+            {
+                onSuccess: cancelUpdateUser,
+                onError: (error) => console.error(error),
             }
-            return;
-            
-        } catch (error) {
-            console.error(error);
-            setIsLoading(false);
-            return null;
-        }
+        );
     }
-    if (isLoading) {
+    if (updateAccountMutation.isPending) {
             return (
                 <div className="w-full h-screen flex justify-center items-center bg-black text-white text-2xl">
                     Updating User...

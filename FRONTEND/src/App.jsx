@@ -1,47 +1,66 @@
-import { useState,useEffect } from 'react'
+import { useEffect } from 'react'
 import './App.css'
 import Navbar from './Components/Navbar/Navbar.jsx'
-import { Outlet, useNavigate } from "react-router";
+import { Outlet } from "react-router";
+import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 
-import { AuthenticationContextProvider } from './Context/AuthenticationContext.js';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
+import HomePage from './Pages/HomePage/HomePage.jsx'
+import VideoPage from './Pages/VideoPage/VideoPage.jsx'
+import UserProfilePage from './Pages/UserProfilePage/UserProfilePage.jsx'
+import VideoUpload from './Pages/VideoUpload/VideoUpload.jsx'
+import Login from './Pages/Login/Login.jsx'
+import SignUp from './Pages/SignUp/SignUp.jsx'
+import WatchHistoryPage from './Pages/WatchHistoryPage/WatchHistoryPage.jsx'
+import SubcriberPage from './Pages/SubscriberPage/SubcriberPage.jsx'
+import VideoLikePage from './Pages/VideoLikePage/VideoLikePage.jsx'
+import SearchResultsPage from './Pages/SearchResultsPage/SearchResultsPage.jsx'
+import UserTweetPage from './Pages/UserTweetPage/UserTweetPage.jsx'
+import UserCoursesPage from './Pages/UserCoursesPage/UserCoursesPage.jsx'
+import UserDashboardPage from './Pages/UserDashboardPage/UserDashboardPage.jsx'
+import MyCoursesPage from './Pages/MyCoursesPage/MyCoursesPage.jsx'
+import PrivateRoute from './PrivateRoute/PrivateRoute.jsx'
+import useAuthStore from './store/authStore.js'
 
+function AppLayout() {
+  const fetchUser = useAuthStore((state) => state.fetchUser);
 
+  useEffect(() => {
+    fetchUser();
+  }, [fetchUser]);
 
+  return (
+    <>
+      <Navbar />
+      <Outlet />
+    </>
+  )
+}
+
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <AppLayout />,
+    children: [
+      { index: true, element: <HomePage /> },
+      { path: 'watch/:videoId', element: <VideoPage /> },
+      { path: 'results', element: <SearchResultsPage /> },
+      { path: 'login', element: <Login /> },
+      { path: 'register', element: <SignUp /> },
+      { path: 'users/:username', element: <PrivateRoute><UserProfilePage /></PrivateRoute> },
+      { path: ':userId/upload', element: <PrivateRoute><VideoUpload /></PrivateRoute> },
+      { path: 'history', element: <PrivateRoute><WatchHistoryPage /></PrivateRoute> },
+      { path: 'subscribers', element: <PrivateRoute><SubcriberPage /></PrivateRoute> },
+      { path: 'likedVideos', element: <PrivateRoute><VideoLikePage /></PrivateRoute> },
+      { path: 'users/:username/tweets', element: <PrivateRoute><UserTweetPage /></PrivateRoute> },
+      { path: 'users/:username/courses', element: <PrivateRoute><UserCoursesPage /></PrivateRoute> },
+      { path: 'channel/:userId', element: <PrivateRoute><UserDashboardPage /></PrivateRoute> },
+      { path: 'courses', element: <PrivateRoute><MyCoursesPage /></PrivateRoute> },
+    ]
+  }
+])
 
 function App() {
-  const navigate=useNavigate();
-  const queryClient=useQueryClient()
-  const [showSideNavbar,setShowSideNavbar]=useState(true);
-  const toggleSideNavbar=()=>{
-    setShowSideNavbar((prev)=>!prev);
-  }
- const {data,isLoading}=useQuery({
-      queryKey:['currentUser'],
-      queryFn:async()=>{
-        try {
-          const response=await axios.get(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/users/get-user`,{withCredentials:true})
-          return (response.status>=200 && response.status<300)?response.data.data:null;
-        } catch (error) {
-          console.error(error);
-          return null;
-        }
-        
-      },
-      staleTime:Infinity,
-      cacheTime:Infinity,
-      refetchOnWindowFocus:false
- })
-
-  
-  return (
-    <AuthenticationContextProvider value={{user:data,isLoading:isLoading}}>
-      <Navbar toggleSideNavbar={toggleSideNavbar}/> 
-      
-      <Outlet context={{showSideNavbar}}/>
-    </AuthenticationContextProvider>
-  )
+  return <RouterProvider router={router} />
 }
 
 export default App

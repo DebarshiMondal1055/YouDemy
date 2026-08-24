@@ -1,13 +1,15 @@
 import React from 'react'
-import { useState,useEffect } from 'react';
-import UpdateUser from '../UpdateUser/UpdateUser';
-import { useAuthContext } from '../../Context/AuthenticationContext';
-import UpdateAvatar from '../UpdateAvatar/UpdateAvatar';
-import UpdateCoverImage from '../UpdateCoverImage/UpdateCoverImage';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
-import UpdateVideo from '../UpdateVideo/UpdateVideo';
-import NewCourse from '../NewCourse/NewCourse';
+import { useState } from 'react';
+import UpdateUser from '../../Components/UpdateUser/UpdateUser';
+import useAuthStore from '../../store/authStore';
+import UpdateAvatar from '../../Components/UpdateAvatar/UpdateAvatar';
+import UpdateCoverImage from '../../Components/UpdateCoverImage/UpdateCoverImage';
+import { useQueryClient } from '@tanstack/react-query';
+import UpdateVideo from '../../Components/UpdateVideo/UpdateVideo';
+import NewCourse from '../../Components/NewCourse/NewCourse';
+import { queryKeys } from '../../utils/queryKeys';
+import { useUserVideosQuery, useDeleteVideoMutation } from '../../Hooks/useVideos';
+import { useCreateTweetMutation } from '../../Hooks/useTweets';
 
 const formatDuration = (durationInSeconds) => {
   const seconds = parseInt(durationInSeconds, 10);
@@ -23,9 +25,9 @@ const formatDuration = (durationInSeconds) => {
 };
 
 
-const UserDashboardPage = ({showSideNavbar}) => {
+const UserDashboardPage = () => {
     const queryClient=useQueryClient();
-    const {user}=useAuthContext()
+    const {user}=useAuthStore()
     const [updateUser,setUpdateUser]=useState(false);
     const [updateAvatar,setUpdateAvatar]=useState(false);
     const [tweetContent, setTweetContent] = useState('');
@@ -63,55 +65,39 @@ const UserDashboardPage = ({showSideNavbar}) => {
       setUpdateCoverImage(false);
     }
 
-    const handleAddTweet=async()=>{
-        try {
-          const data={content:tweetContent}
-          const response=await axios.post(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/tweets/create-tweet`,data,{withCredentials:true});
-          if(response.status===200){
-            alert("Tweet Added Successfully");
-            return null;
-          }
-        } catch (error) {
-            alert("Failed to add tweet");
-          console.error(error);
-          return null;
-        }
+    const createTweetMutation=useCreateTweetMutation();
+
+    const handleAddTweet=()=>{
+        createTweetMutation.mutate(tweetContent,{
+            onSuccess:()=>{
+                alert("Tweet Added Successfully");
+                setTweetContent('');
+            },
+            onError:(error)=>{
+                alert("Failed to add tweet");
+                console.error(error);
+            }
+        })
     }
 
-    const {data,isLoading,isError,error}=useQuery({
-        queryKey:['userVideos'],
-        queryFn:async()=>{
-            try {
-                const response=await axios.get(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/videos/${user?._id}`);
-                return response.status===200?response.data.data:[];
-            } catch (error) {
-                console.error(error);
-                return [];
-            }
-        },
-        enabled:!!user?._id
-    })
+    const {data}=useUserVideosQuery(user?._id)
 
-    const deleteVideoMutation = useMutation({
-        mutationFn: async (videoId) => {
-            const response1=await axios.post(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/videos/v/${videoId}`,{}, { withCredentials: true });
-            const response2=await axios.post(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/likes/delete/v/${videoId}`,{},{withCredentials:true});
-            if(response2.status!==200) console.log("Something wrong in Likes")
-            const response3=await axios.post(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/playlists/v/${videoId}`,{},{withCredentials:true});
-            if(response3.status!==200)
-            return response1;
-        },
-        onSuccess: (_, videoId) => {
-            queryClient.invalidateQueries(['courses',user?._id])
-            queryClient.setQueryData(['userVideos'], (oldVideos = []) =>
-            oldVideos.filter((v) => v._id !== videoId)
-            );
-        },
-        onError: (error) => {
-            console.error("Failed to delete video:", error);
-            alert("Failed to delete video.");
-        },
-    });
+    const deleteVideoMutation = useDeleteVideoMutation();
+
+    const handleDeleteVideo=(videoId)=>{
+        deleteVideoMutation.mutate(videoId,{
+            onSuccess: () => {
+                queryClient.invalidateQueries({queryKey:queryKeys.courses(user?._id)})
+                queryClient.setQueryData(queryKeys.userVideos(user?._id), (oldVideos = []) =>
+                oldVideos.filter((v) => v._id !== videoId)
+                );
+            },
+            onError: (error) => {
+                console.error("Failed to delete video:", error);
+                alert("Failed to delete video.");
+            },
+        })
+    }
 
     const checkBoxHandler=(videoId,status)=>{
         setAddedVideos((prevVideos)=>status==false?
@@ -120,7 +106,7 @@ const UserDashboardPage = ({showSideNavbar}) => {
     }
 
     return (
-    <div className={`flex flex-col gap-4 ${showSideNavbar ? 'ml-[280px]' : 'ml-0'} bg-black py-4 px-4 text-white min-h-[92vh] w-full overflow-x-hidden `}>
+    <div className='flex flex-col gap-4 bg-black pt-[76px] pb-4 px-4 text-white min-h-[92vh] w-full overflow-x-hidden'>
         <div>
             <div className="relative">
                 <img onClick={()=>setUpdateCoverImage(true)} 
@@ -204,7 +190,7 @@ const UserDashboardPage = ({showSideNavbar}) => {
                         <button
                         onClick={() => {
                             if (window.confirm("Are you sure you want to delete this video?")) {
-                                deleteVideoMutation.mutate(video._id);
+                                handleDeleteVideo(video._id);
                             }
                         }}
                         className="px-3 py-1 bg-red-600 hover:bg-red-500 rounded text-sm"

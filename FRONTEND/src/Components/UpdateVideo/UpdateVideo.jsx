@@ -1,31 +1,32 @@
 import { useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
 import React, { useState } from 'react'
+import useAuthStore from '../../store/authStore';
+import { queryKeys } from '../../utils/queryKeys';
+import { useUpdateVideoMutation } from '../../Hooks/useVideos';
 
 const UpdateVideo = ({cancelUpdateVideo,selectedVideo}) => {
     const queryClient=useQueryClient();
+    const {user}=useAuthStore();
     const [title,setTitle]=useState(selectedVideo?.title);
     const [description,setDescription]=useState("");
+    const updateVideoMutation=useUpdateVideoMutation();
 
-    const videoUpdateHandler=async()=>{
-        try {
-            if(!title.trim() || !description.trim()){
-                alert("Title and description are requiered")
-                return;
-            }
-            const data={title,description}
-            const response=await axios.patch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/videos/v/${selectedVideo._id}`,data,{withCredentials:true});
-            if(response.status===200){
-                await queryClient.setQueryData(['userVideos'],(prev=[])=>prev.map((video)=>video._id===selectedVideo._id?response.data.data:video))
-                alert("Video updated successfully!");
-                cancelUpdateVideo(); 
-            }
-            return;
-        } catch (error) {
-            alert("Failed to update Video")
-            console.error(error)
+    const videoUpdateHandler=()=>{
+        if(!title.trim() || !description.trim()){
+            alert("Title and description are requiered")
             return;
         }
+        updateVideoMutation.mutate({videoId:selectedVideo._id,title,description},{
+            onSuccess:(updatedVideo)=>{
+                queryClient.setQueryData(queryKeys.userVideos(user?._id),(prev=[])=>prev.map((video)=>video._id===selectedVideo._id?updatedVideo:video))
+                alert("Video updated successfully!");
+                cancelUpdateVideo();
+            },
+            onError:(error)=>{
+                alert("Failed to update Video")
+                console.error(error)
+            }
+        })
     }
     return (
     <div className="fixed top-0 left-0 w-full h-full bg-black/70 flex justify-center items-center text-white z-20">

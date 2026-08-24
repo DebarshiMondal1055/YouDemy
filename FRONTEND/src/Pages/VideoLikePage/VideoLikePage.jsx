@@ -1,20 +1,9 @@
 import React from 'react';
-import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
 import { Link } from 'react-router-dom';
+import { useLikedVideosQuery } from '../../Hooks/useLikes';
 
-const VideoLikePage = ({ showSideNavbar }) => {
-  const { data, isLoading, isError, error } = useQuery({
-    queryKey: ['likedVideos'],
-    queryFn: async () => {
-        try {
-            const response = await axios.get(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/likes/videos`);
-            return (response.status===200)?response.data.data : [];
-        } catch (error) {
-            console.error(error)
-        }
-    }
-  });
+const VideoLikePage = () => {
+  const { data, isLoading, isError, error } = useLikedVideosQuery();
 
   // Function to format duration from seconds to MM:SS
   const formatDuration = (seconds) => {
@@ -47,7 +36,7 @@ const VideoLikePage = ({ showSideNavbar }) => {
   }
 
   return (
-    <div className={`flex flex-col gap-4 ${showSideNavbar ? 'ml-[280px]' : 'ml-0'} bg-black py-4 px-4 text-white min-h-[92vh] w-full overflow-x-hidden`}>
+    <div className='flex flex-col gap-4 bg-black pt-[76px] pb-4 px-4 text-white min-h-[92vh] w-full overflow-x-hidden'>
       <h1 className="text-2xl font-bold">Liked Videos</h1>
       <div className="flex flex-col gap-6">
         {data.map((video,index) => (

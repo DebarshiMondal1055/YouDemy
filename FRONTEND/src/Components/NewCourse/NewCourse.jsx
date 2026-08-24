@@ -1,42 +1,32 @@
-import { useMutation } from '@tanstack/react-query';
-import axios from 'axios';
 import React, { useState } from 'react'
+import useAuthStore from '../../store/authStore';
+import { useCreateCourseMutation } from '../../Hooks/usePlaylists';
 
 const NewCourse = ({cancelDone,addedVideos}) => {
-    
+
+    const {user}=useAuthStore();
     const [title,setTitle]=useState("");
     const [description,setDescription]=useState("");
 
-    const  createCourseMutation=useMutation({
-        mutationFn:async()=>{
-            const response= await axios.post(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/playlists/create-playlist`,{name:title,description:description},{withCredentials:true})
-            let uploadVideos=[];
-            if(response.status===201){
-                 uploadVideos=await axios.post(`/api/v1/playlists/${response.data.data._id}/videos`,{videoIds:addedVideos},{withCredentials:true})
-                
-            }
-            return uploadVideos;
-        },
-        onSuccess:async(response)=>{
-            setTitle("");
-            setDescription("");
-            cancelDone();
-            alert("course added")
-            return;
-        },
-        onError:(error)=>{
-            alert("Failed to create Playlist")
-            console.log(error);
-            return;
-        }
-    }) 
+    const createCourseMutation=useCreateCourseMutation(user?._id)
 
     const handleCreate = () => {
     if (!title.trim() || !description.trim()) {
         alert("Title and description are required.");
         return;
     }
-        createCourseMutation.mutate();
+        createCourseMutation.mutate({name:title,description,videoIds:addedVideos},{
+            onSuccess:()=>{
+                setTitle("");
+                setDescription("");
+                cancelDone();
+                alert("course added")
+            },
+            onError:(error)=>{
+                alert("Failed to create Playlist")
+                console.error(error);
+            }
+        });
     };
 
   return (
@@ -56,7 +46,7 @@ const NewCourse = ({cancelDone,addedVideos}) => {
                 />
             </div>
             <div className='flex mt-15 justify-evenly w-[60%] '>
-                <button onClick={handleCreate}   disabled={createCourseMutation.isLoading}
+                <button onClick={handleCreate}   disabled={createCourseMutation.isPending}
                     className='bg-emerald-400 p-2 cursor-pointer rounded-2xl'>Create</button>
                 <button onClick={()=>cancelDone()} 
                 className='bg-red-400 p-2 cursor-pointer rounded-2xl'>Cancel</button>

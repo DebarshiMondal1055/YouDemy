@@ -1,29 +1,15 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
 import React, { useState } from 'react'
 import {Link,NavLink} from 'react-router-dom'
 import { categories } from '../../utils/categories';
-const HomePage = ({showSideNavbar}) => {
-  const queryClient=useQueryClient();
+import { useHomeVideosQuery } from '../../Hooks/useVideos';
+const HomePage = () => {
 
   const [category,setCategory]=useState("");
 
-  const {data,isLoading,isError,error}=useQuery({
-    queryKey:['homeVideos',category],
-    queryFn:async()=>{
-      try {
-        const response=await axios.get(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/videos?category=${category}`)
-        return (response.status===200)?response.data.data:[];
-      } catch (error) {
-        console.error(error)
-        return [];
-      }
-    },
-  })
+  const {data,isLoading}=useHomeVideosQuery(category)
 
   const handleHomePageVideos=(skill)=>{
       setCategory(skill);
-      queryClient.invalidateQueries(['homeVideos']);
   }
 
   if(isLoading){
@@ -77,7 +63,7 @@ const formatRelativeTime = (createdAt) => {
 };
 
   return (
-    <div className={`flex flex-col ${showSideNavbar ? 'ml-[280px]' : 'ml-0'} bg-black top-[64px] min-h-[92vh] w-full overflow-x-hidden`}>
+    <div className='flex flex-col bg-black pt-[64px] min-h-[92vh] w-full overflow-x-hidden'>
         <div id='homePage-options' className='flex items-center gap-2 overflow-x-auto whitespace-nowrap
                 z-[5] fixed box-border px-3 py-3 w-full bg-black '>
             <div onClick={()=>handleHomePageVideos("")} 

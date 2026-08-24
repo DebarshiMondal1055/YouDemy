@@ -1,8 +1,8 @@
 import React from 'react'
-import { useAuthContext } from '../Context/AuthenticationContext'
+import useAuthStore from '../store/authStore'
 import { Navigate } from 'react-router-dom';
 const PrivateRoute = ({children}) => {
-    const {user,isLoading}=useAuthContext();
+    const {user,isLoading}=useAuthStore();
     if(isLoading){
         return (
         <div className="w-full h-screen flex justify-center items-center bg-black text-white text-2xl">

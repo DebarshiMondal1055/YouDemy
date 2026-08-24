@@ -3,16 +3,20 @@ import ThumbUpOffAltIcon from '@mui/icons-material/ThumbUpOffAlt';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import ShareIcon from '@mui/icons-material/Share';
 import { useParams , Link } from 'react-router-dom';
-import { useCustomGetRequest } from '../../Hooks/customGetReactQuery';
-import axios from 'axios';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useAuthContext } from '../../Context/AuthenticationContext';
+import { useQueryClient } from '@tanstack/react-query';
+import useAuthStore from '../../store/authStore';
 import { formatRelativeTime } from '../../utils/formatRelativeTime';
+import axiosClient from '../../utils/axiosClient';
+import { queryKeys } from '../../utils/queryKeys';
+import { useVideoQuery, useSuggestedVideosQuery } from '../../Hooks/useVideos';
+import { useCommentsQuery, useAddCommentMutation } from '../../Hooks/useComments';
+import { useToggleSubscribeMutation } from '../../Hooks/useSubscriptions';
+import { useToggleVideoLikeMutation } from '../../Hooks/useLikes';
 
 
-const VideoPage = ({showSideNavbar}) => {
+const VideoPage = () => {
 
-    const {user}=useAuthContext();
+    const {user}=useAuthStore();
     const queryClient=useQueryClient()  //initialise the client provided by QueryClientProvider
     const [commentDescription,setcommentDescription]=useState("")
     const {videoId}=useParams();
@@ -20,95 +24,45 @@ const VideoPage = ({showSideNavbar}) => {
     useEffect(()=>{
         ;(async()=>{
             try {
-                const response=await axios.post(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/users/v/${videoId}`)
+                await axiosClient.post(`/users/v/${videoId}`)
             } catch (error) {
                 console.error(error)
             }
         })()
-    },[])
-    const {data,error,isLoading:loading}=useQuery({
-        queryKey:['video',videoId],
-        queryFn:async()=>{
-            const response=await axios.get(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/videos/v/${videoId}`);
-            return (response.status>=200 && response.status<300)?response.data.data:null;
-        }
-    })
+    },[videoId])
+    const {data,isLoading:loading}=useVideoQuery(videoId)
 
+    const {data:commentsData,isLoading:commentsLoading}=useCommentsQuery(videoId)
 
-    const {data:commentsData,isLoading:commentsLoading,isError,error:commentError}=useQuery({
-        queryKey:['comments',videoId],
-        queryFn:async()=>{
-            const response= await axios.get(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/comments/v/${videoId}`)
-            return response.data.data
-        }
-    })
-    
+    const addCommentMutation=useAddCommentMutation(videoId);
 
-    
-    
-    const addCommentHandler=async()=>{
-        try {
-            const response=await axios.post(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/comments/${videoId}`,
-                {content:commentDescription});
-            queryClient.invalidateQueries(['comments',videoId]);
-            setcommentDescription("");
-        } catch (error) {
-            console.error(error);
-        }
-
+    const addCommentHandler=()=>{
+        addCommentMutation.mutate(commentDescription,{
+            onSuccess:()=>setcommentDescription("")
+        });
     }
 
-    const toggleSubscribe=async ()=>{
-        try {
-            const response = await axios.post(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/subscriptions/c/${data?.owner._id}`, {}, { withCredentials: true });
-            const {isSubscribed,subscriptionCount}=response.data.data;
-            queryClient.setQueryData(['video',videoId],(prev)=>({...prev,isSubcribed:isSubscribed,subcribersCount:subscriptionCount}))
-        } catch (error) {
-            console.error(error);
-        }
+    const toggleSubscribeMutation=useToggleSubscribeMutation();
 
+    const toggleSubscribe=()=>{
+        toggleSubscribeMutation.mutate(data?.owner._id,{
+            onSuccess:({isSubscribed,subscriptionCount})=>{
+                queryClient.setQueryData(queryKeys.video(videoId),(prev)=>({...prev,isSubcribed:isSubscribed,subcribersCount:subscriptionCount}))
+            }
+        })
     }
 
-    const toggleLike=async()=>{
-        try{
-            const response =await axios.post(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/likes/toggle/v/${videoId}`,{},{withCredentials:true});
-            const {isLiked,likesCount}=response.data.data;
-            queryClient.setQueryData(['video',videoId],(prev)=>({...prev,isLiked:isLiked,likesCount:likesCount}))
-        }catch(error){
-            console.error(error)
-        }
+    const toggleLikeMutation=useToggleVideoLikeMutation();
+
+    const toggleLike=()=>{
+        toggleLikeMutation.mutate(videoId,{
+            onSuccess:({isLiked,likesCount})=>{
+                queryClient.setQueryData(queryKeys.video(videoId),(prev)=>({...prev,isLiked:isLiked,likesCount:likesCount}))
+            }
+        })
     }
 
-    const {data:suggestions,isLoading,isError:suggestionIsError,error:suggestionError}=useQuery({
-        queryKey:['suggestedVideos',videoId,data?.title],
-        enabled:  !!data?.title && !!data?.category,
-        queryFn: async () => {
-        try {
-            const [resByTitle, resByCategory] = await Promise.all([
-            axios.get(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/videos/get-all-videos?query=${data?.title}`),
-            axios.get(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/v1/videos?category=${data?.category}`)
-            ]);
-
-            const videosByTitle = resByTitle.status === 200 ? resByTitle.data.data : [];
-            const videosByCategory = resByCategory.status === 200 ? resByCategory.data.data : [];
-
-            const seenIds = new Set();
-            const allSuggestions=[];
-
-            [...videosByTitle, ...videosByCategory].forEach((video) => {
-                if(video._id!==videoId && !seenIds.has(video._id)){
-                    seenIds.add(video._id);
-                    allSuggestions.push(video)
-                }
-            });
-
-            return allSuggestions;
-        } catch (error) {
-            console.error("Error fetching suggestions:", error);
-            return [];
-        }
-        },
-    })
+    const {data:suggestions}=useSuggestedVideosQuery(videoId,data?.title,data?.category)
 
     const handleShare = async () => {
         try {
@@ -137,7 +91,7 @@ const VideoPage = ({showSideNavbar}) => {
     
     return (
     <>
-    <div className={`flex w-full bg-black box-border py-12 pl-4 justify-center ${showSideNavbar ? 'ml-[280px]' : ''}`}>
+    <div className='flex w-full bg-black box-border pt-[108px] pb-12 pl-4 justify-center'>
 
         <div className='flex flex-col max-w-[875px] w-[100%]'>
         <div className='w-full'>
